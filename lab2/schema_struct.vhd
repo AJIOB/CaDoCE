@@ -17,8 +17,8 @@ begin
   a1 <= not x1 after 1 ns;
 
   b1 <= not d2 after 1 ns;
-  b2 <= not (x2 and a1) after 3 ns;
-  b3 <= not (x3 and x1) after 3 ns;
+  b2 <= not (x2 or a1) after 3 ns;
+  b3 <= not (x3 or x1) after 3 ns;
   b4 <= not x4 after 1 ns;
 
   c1 <= not b1 after 1 ns;
