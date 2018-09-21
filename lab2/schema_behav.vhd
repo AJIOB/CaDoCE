@@ -11,8 +11,8 @@ end schema_behav ;
 architecture main_arch of schema_behav is
 begin
   -- outs
-  y1 <= '0';
-  y2 <= '0';
-  y3 <= '0';
+  y1 <= x1 or x2 or (not x3);
+  y2 <= x3 and ((not x1) or (not x2) or x4);
+  y3 <= (x1 and (not x2)) or ((not x1) and (not x3)) or (not x4);
   y4 <= '0';
 end main_arch ; -- main_arch
