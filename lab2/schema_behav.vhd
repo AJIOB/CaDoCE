@@ -13,6 +13,6 @@ begin
   -- outs
   y1 <= x1 or x2 or (not x3);
   y2 <= x3 and ((not x1) or (not x2) or x4);
-  y3 <= (x1 and (not x2)) or ((not x1) and (not x3)) or (not x4);
+  y3 <= ((x1) and (not x2) and (x3)) or ((not x1) and (x2) and (not x3)) or ((x2) and (not x4)) or ((not x1) and (not x4));
   y4 <= '0';
 end main_arch ; -- main_arch
