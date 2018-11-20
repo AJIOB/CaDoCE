@@ -16,6 +16,7 @@ architecture main_arch of lab4_schema is
 
   signal r_prev_t : time := 0 ns;
   signal r_filtered : std_logic := '0';
+  signal r_out_now : std_logic := '0';
 
   constant clk_duration : time := 4 ns;
   constant r_duration : time := 4 ns;
@@ -47,6 +48,18 @@ begin
     else
       r_filtered <= r;
     end if;
+  end process;
+
+  process(r_filtered)
+  variable new_r : std_logic;
+  begin
+    if (r_filtered = '1') then
+      new_r := '1';
+    else
+      new_r := '0';
+    end if;
+
+    r_out_now <= new_r after 8 ns;
   end process;
 
   --TODO:
