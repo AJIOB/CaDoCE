@@ -14,10 +14,11 @@ architecture main_arch of lab4_schema is
   signal d_prev_t : time := 0 ns;
   signal d_filtered : std_logic := '0';
   signal d_filtered_after_c : std_logic := '0';
-  signal d_out_now : std_logic := '0';
+  signal d_out_future_1 : std_logic := '0';
 
   signal clk_prev_t : time := 0 ns;
   signal c_filtered : std_logic := '0';
+  signal c_out_now_for_d : std_logic := '0';
 
   signal r_prev_t : time := 0 ns;
   signal r_filtered : std_logic := '0';
@@ -102,7 +103,9 @@ begin
         d_delay_res := 7 ns;
       end if;
 
-      d_out_now <= transport new_d after d_delay_res;
+      -- for cacting of c_out_now_for_d rising edge
+      d_out_future_1 <= transport new_d after d_delay_res - 1 ns;
+      c_out_now_for_d <= transport c after d_delay_res;
     end if;
   end process;
 
@@ -118,7 +121,31 @@ begin
     r_out_now <= transport new_r after 8 ns;
   end process;
 
-  --TODO:
+  process(r_out_now, d_out_future_1, c_out_now_for_d, d_filtered, d_filtered_after_c, c_filtered, r_filtered)
+  variable is_signals_good : boolean;
+  begin
+    is_signals_good := true;
+    is_signals_good := is_signals_good and ((d_filtered = '0') or (d_filtered = '1'));
+    is_signals_good := is_signals_good and ((d_filtered_after_c = '0') or (d_filtered_after_c = '1'));
+    is_signals_good := is_signals_good and ((c_filtered = '0') or (c_filtered = '1'));
+    is_signals_good := is_signals_good and ((r_filtered = '0') or (r_filtered = '1'));
+
+    if (not is_signals_good) then
+      assert false report "Some input was wrong. See errors before or check input values" severity error;
+
+      val <= 'X';
+    else
+      -- good input
+
+      if (r_out_now = '1') then
+        -- high priority R
+        val <= '0';
+      elsif (c_out_now_for_d'event and c_out_now_for_d = '1') then
+        -- d changing
+        val <= d_out_future_1;
+      end if;
+    end if;
+  end process;
 
   -- outs
   q <= val;
