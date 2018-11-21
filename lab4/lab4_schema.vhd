@@ -11,6 +11,9 @@ end lab4_schema ;
 architecture main_arch of lab4_schema is
   signal val : std_logic := 'Z';
 
+  signal d_prev_t : time := 0 ns;
+  signal d_filtered : std_logic := '0';
+
   signal clk_prev_t : time := 0 ns;
   signal clk_filtered : std_logic := '0';
 
@@ -18,6 +21,7 @@ architecture main_arch of lab4_schema is
   signal r_filtered : std_logic := '0';
   signal r_out_now : std_logic := '0';
 
+  constant d_duration : time := 4 ns;
   constant clk_duration : time := 4 ns;
   constant r_duration : time := 4 ns;
 begin
@@ -47,6 +51,20 @@ begin
       assert false report "R = 1 need at least 4ns wait between switching" severity error;
     else
       r_filtered <= r;
+    end if;
+  end process;
+
+  process(d)
+  variable d_delta : time;
+  begin
+    d_prev_t <= now;
+
+    d_delta := now - d_prev_t;
+    if ((d_delta < d_duration) and (d_delta > 0 ns)) then
+      d_filtered <= 'X';
+      assert false report "D need at least 4ns wait between switching" severity error;
+    else
+      d_filtered <= d;
     end if;
   end process;
 
