@@ -102,7 +102,7 @@ begin
         d_delay_res := 7 ns;
       end if;
 
-      d_out_now <= new_d after d_delay_res;
+      d_out_now <= transport new_d after d_delay_res;
     end if;
   end process;
 
@@ -115,7 +115,7 @@ begin
       new_r := '0';
     end if;
 
-    r_out_now <= new_r after 8 ns;
+    r_out_now <= transport new_r after 8 ns;
   end process;
 
   --TODO:
