@@ -73,7 +73,7 @@ begin
 
   process(c_filtered)
   variable new_d : std_logic;
-  variable d_delay_res : time;
+  variable d_delay_res : time := 0 ns;
   begin
     if (d_filtered = '1') then
       new_d := '1';
@@ -108,8 +108,9 @@ begin
 
       -- for cacting of c_out_now_for_d rising edge
       d_out_future_1 <= transport new_d after (d_delay_res - 1 ns);
-      c_out_now_for_d <= transport c after d_delay_res;
     end if;
+
+    c_out_now_for_d <= transport c_filtered after d_delay_res;
   end process;
 
   process(r_filtered)
