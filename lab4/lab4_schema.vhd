@@ -86,21 +86,24 @@ begin
         -- 0-2 ns
         d_filtered_after_c <= 'X';
         assert false report "D need to be stable at least 3ns before C rise" severity error;
-      elsif (not d_filtered'stable(4 ns)) then
-        -- 3 ns
-        d_delay_res := 9 ns;
-      elsif (not d_filtered'stable(5 ns)) then
-        -- 4 ns
-        d_delay_res := 8 ns;
-      elsif (not d_filtered'stable(6 ns)) then
-        -- 5 ns
-        d_delay_res := 7 ns;
-      elsif (d_filtered = '0') then
-        -- 6 ns & more with d = 0
-        d_delay_res := 6 ns;
       else
-        -- 6 ns & more with d = 1
-        d_delay_res := 7 ns;
+        d_filtered_after_c <= d_filtered;
+        if (not d_filtered'stable(4 ns)) then
+          -- 3 ns
+          d_delay_res := 9 ns;
+        elsif (not d_filtered'stable(5 ns)) then
+          -- 4 ns
+          d_delay_res := 8 ns;
+        elsif (not d_filtered'stable(6 ns)) then
+          -- 5 ns
+          d_delay_res := 7 ns;
+        elsif (d_filtered = '0') then
+          -- 6 ns & more with d = 0
+          d_delay_res := 6 ns;
+        else
+          -- 6 ns & more with d = 1
+          d_delay_res := 7 ns;
+        end if;
       end if;
 
       -- for cacting of c_out_now_for_d rising edge
