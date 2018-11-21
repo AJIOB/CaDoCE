@@ -104,7 +104,7 @@ begin
       end if;
 
       -- for cacting of c_out_now_for_d rising edge
-      d_out_future_1 <= transport new_d after d_delay_res - 1 ns;
+      d_out_future_1 <= transport new_d after (d_delay_res - 1 ns);
       c_out_now_for_d <= transport c after d_delay_res;
     end if;
   end process;
@@ -131,7 +131,10 @@ begin
     is_signals_good := is_signals_good and ((r_filtered = '0') or (r_filtered = '1'));
 
     if (not is_signals_good) then
-      assert false report "Some input was wrong. See errors before or check input values" severity error;
+      if (now > 0 ns) then
+        -- don't send error at simulation begin
+        assert false report "Some input was wrong. See errors before or check input values" severity error;
+      end if;
 
       val <= 'X';
     else
