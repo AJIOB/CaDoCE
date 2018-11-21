@@ -1,14 +1,14 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 
-entity lab4_schema is
+entity lab4_struct_schema is
   port (
     d, c, r: in std_logic;
     q: out std_logic
   ) ;
-end lab4_schema ;
+end lab4_struct_schema ;
 
-architecture main_arch of lab4_schema is
+architecture main_arch of lab4_struct_schema is
     component n
         port (
           x: in std_logic;

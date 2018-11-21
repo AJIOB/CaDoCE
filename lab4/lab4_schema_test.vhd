@@ -13,7 +13,13 @@ architecture my_arch of lab4_schema_test is
           q: out std_logic
         ) ;
       end component;
-    signal d, r, q: std_logic;
+    component lab4_struct_schema
+        port (
+          d, c, r: in std_logic;
+          q: out std_logic
+        ) ;
+      end component;
+    signal d, r, q, q_struct: std_logic;
     signal c: std_logic := '0';
     signal ready: std_logic := '0';
 
@@ -27,6 +33,7 @@ architecture my_arch of lab4_schema_test is
     constant r_period_align: time := c_period - r_delay;
 begin
     s1: lab4_schema port map (d, c, r, q);
+    s_struct1: lab4_struct_schema port map (d, c, r, q_struct);
 
     process
     begin
@@ -64,7 +71,7 @@ begin
         -- d = '1', (1, ...) period
         d <= '1';
         wait for c_period + r_period_align;
-        
+
         -- r = '1', 1 delay
         r <= '1';
         wait for r_delay;
@@ -73,7 +80,7 @@ begin
         r <= '0';
         d <= '0';
         wait for c_period;
-        
+
         -- r = '1' with d = '1', 1 delay
         r <= '1';
         d <= '1';
@@ -103,7 +110,7 @@ begin
             write(out_line, c, right, 1);
             writeline(file_res, out_line);
         end loop;
-        
+
         wait;
     end process ;
 end my_arch ; -- my_arch
