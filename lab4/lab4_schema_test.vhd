@@ -21,96 +21,23 @@ architecture my_arch of lab4_schema_test is
       end component;
     signal d, r, q, q_struct: std_logic;
     signal c: std_logic := '0';
-    signal ready: std_logic := '0';
-
-    constant c_half_period: time := 6 ns;
-    constant r_delay: time := 4 ns;
-    constant d_before_delay: time := 7 ns;
-    constant d_after_delay: time := 4 ns;
-
-    constant c_period: time := 2 * c_half_period;
-    constant d_period_align: time := c_period - d_before_delay - d_after_delay;
-    constant r_period_align: time := c_period - r_delay;
 begin
     s1: lab4_schema port map (d, c, r, q);
     s_struct1: lab4_struct_schema port map (d, c, r, q_struct);
 
-    process
-    begin
-        -- init
-        ready <= '0';
-        r <= '1';
-        d <= '0';
-        wait for c_half_period * 3 - d_before_delay;
+    R <= '1', '1' after 50 ns, '1' after 100 ns, '1' after 150 ns, '0' after 200 ns, '0' after 250 ns, '0' after 300 ns,
+	'0' after 350 ns, '0' after 400 ns, '0' after 450 ns, '0' after 500 ns, '0' after 550 ns, '0' after 600 ns,
+	'1' after 650 ns, '1' after 700 ns, '0' after 750 ns, '0' after 800 ns, '1' after 850 ns, '0' after 900 ns,
+	'1' after 950 ns, '1' after 1000 ns;
 
-        -- d = '1', 2 periods
-        r <= '0';
-        d <= '1';
-        wait for c_period * 2;
+	D <= '0', '0' after 50 ns, '1' after 100 ns, '1' after 150 ns, '1' after 200 ns, '1' after 250 ns, '1' after 300 ns,
+	'1' after 350 ns, '0' after 400 ns, '0' after 450 ns, '0' after 500 ns, '1' after 550 ns, '0' after 600 ns,
+	'0' after 650 ns, '0' after 700 ns, '1' after 750 ns, '1' after 800 ns, '0' after 850 ns, '0' after 900 ns,
+	'1' after 950 ns, '1' after 1000 ns;
 
-        -- reset, 1 delay
-        r <= '1';
-        wait for r_delay;
+	C <= '0', '1' after 50 ns, '0' after 100 ns, '1' after 150 ns, '0' after 200 ns, '1' after 250 ns, '0' after 300 ns,
+	'1' after 350 ns, '0' after 400 ns, '1' after 450 ns, '0' after 500 ns, '1' after 550 ns, '0' after 600 ns,
+	'1' after 650 ns, '0' after 700 ns, '1' after 750 ns, '1' after 800 ns, '0' after 850 ns, '0' after 900 ns,
+	'1' after 950 ns, '0' after 1000 ns;
 
-        -- d = '1', continue (1,...) period
-        r <= '0';
-        wait for r_period_align + c_period;
-
-        -- d = '0', (1, ...) period
-        d <= '0';
-        wait for c_period + r_period_align;
-
-        -- r = '1', 1 delay
-        r <= '1';
-        wait for r_delay;
-
-        -- d = '0', 1 period
-        r <= '0';
-        wait for c_period;
-
-        -- d = '1', (1, ...) period
-        d <= '1';
-        wait for c_period + r_period_align;
-
-        -- r = '1', 1 delay
-        r <= '1';
-        wait for r_delay;
-
-        -- d = '0', 1 period
-        r <= '0';
-        d <= '0';
-        wait for c_period;
-
-        -- r = '1' with d = '1', 1 delay
-        r <= '1';
-        d <= '1';
-        wait for r_delay;
-
-        -- d = '1', 1 period
-        r <= '0';
-        wait for c_period;
-
-        ready <= '1';
-        wait for c_period;
-
-        wait;
-    end process;
-
-    c <= not c after c_half_period;
-
-    file_work : process
-        file file_res : text is out "output_results.txt";
-        variable out_line : line;
-    begin
-        while (ready /= '1') loop
-            wait for 1 ns;
-            -- d r c
-            write(out_line, d, right, 1);
-            write(out_line, r, right, 1);
-            write(out_line, c, right, 1);
-            writeline(file_res, out_line);
-        end loop;
-
-        wait;
-    end process ;
 end my_arch ; -- my_arch
