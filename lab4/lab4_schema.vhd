@@ -115,17 +115,11 @@ begin
     c_out_now_for_d <= transport c_filtered after d_delay_res;
   end process;
 
-  process(r_filtered)
-  variable new_r : std_logic;
-  begin
-    if (r_filtered = '1') then
-      new_r := '1';
-    else
-      new_r := '0';
-    end if;
+  r_out_now <= transport
+    '1' when (r_filtered = '1') else
+    '0'
+    after 8 ns;
 
-    r_out_now <= transport new_r after 8 ns;
-  end process;
   -- process(r_out_now, d_out_future_1, c_out_now_for_d, d_filtered, d_filtered_after_c, c_filtered, r_filtered)
   -- variable is_signals_good : boolean;
   -- begin
