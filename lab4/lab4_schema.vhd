@@ -9,8 +9,10 @@ entity lab4_schema is
 end lab4_schema ;
 
 architecture main_arch of lab4_schema is
-  signal val : std_logic := 'Z';
+  signal signal_q : std_logic := 'Z';
+  signal ideal_q : std_logic := 'Z';
 
+  signal schema_is_error : boolean := false;
   signal d_prev_t : time := 0 ns;
   signal d_filtered : std_logic := '0';
   signal d_filtered_after_c : std_logic := '0';
@@ -124,36 +126,42 @@ begin
 
     r_out_now <= transport new_r after 8 ns;
   end process;
+  -- process(r_out_now, d_out_future_1, c_out_now_for_d, d_filtered, d_filtered_after_c, c_filtered, r_filtered)
+  -- variable is_signals_good : boolean;
+  -- begin
+  --   is_signals_good := true;
+  --   is_signals_good := is_signals_good and ((d_filtered = '0') or (d_filtered = '1'));
+  --   is_signals_good := is_signals_good and ((d_filtered_after_c = '0') or (d_filtered_after_c = '1'));
+  --   is_signals_good := is_signals_good and ((c_filtered = '0') or (c_filtered = '1'));
+  --   is_signals_good := is_signals_good and ((r_filtered = '0') or (r_filtered = '1'));
 
-  process(r_out_now, d_out_future_1, c_out_now_for_d, d_filtered, d_filtered_after_c, c_filtered, r_filtered)
-  variable is_signals_good : boolean;
+  -- end process;
+
+  ideal_trigger: process(r_out_now, c_out_now_for_d)
   begin
-    is_signals_good := true;
-    is_signals_good := is_signals_good and ((d_filtered = '0') or (d_filtered = '1'));
-    is_signals_good := is_signals_good and ((d_filtered_after_c = '0') or (d_filtered_after_c = '1'));
-    is_signals_good := is_signals_good and ((c_filtered = '0') or (c_filtered = '1'));
-    is_signals_good := is_signals_good and ((r_filtered = '0') or (r_filtered = '1'));
-
-    if (not is_signals_good) then
-      if (now > 0 ns) then
-        -- don't send error at simulation begin
-        assert false report "Some input was wrong. See errors before or check input values" severity error;
-      end if;
-
-      val <= 'X';
-    else
-      -- good input
-
-      if (r_out_now = '1') then
-        -- high priority R
-        val <= '0';
-      elsif (c_out_now_for_d'event and c_out_now_for_d = '1') then
-        -- d changing
-        val <= d_out_future_1;
-      end if;
+    if (r_out_now = '1') then
+      -- high priority R
+      ideal_q <= '0';
+    elsif (c_out_now_for_d'event and c_out_now_for_d = '1') then
+      -- d changing
+      ideal_q <= d_out_future_1;
     end if;
   end process;
 
+  -- TODO: add other errors
+  schema_is_error <= d_is_error;
+  assert schema_is_error report "Some input was wrong. See errors before or check input values" severity error;
+
   -- outs
-  q <= val;
+  trigger_body_good: block (not schema_is_error)
+  begin
+    signal_q <= guarded ideal_q;
+  end block trigger_body_good;
+
+  trigger_body_bad: block (schema_is_error)
+  begin
+    signal_q <= guarded 'X';
+  end block trigger_body_bad;
+
+  q <= signal_q;
 end main_arch ; -- main_arch
