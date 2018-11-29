@@ -9,7 +9,7 @@ entity lab4_schema is
 end lab4_schema ;
 
 architecture main_arch of lab4_schema is
-  signal signal_q : std_logic := 'Z';
+  signal signal_q : std_logic bus := 'Z';
   signal ideal_q : std_logic;
 
   signal schema_is_error : boolean := false;
@@ -35,10 +35,10 @@ architecture main_arch of lab4_schema is
   constant r_res_delay : time := 8 ns;
 
 begin
-  assert c_is_error report "C need at least 4ns wait between switching" severity error;
-  assert r_is_error report "R = 1 need at least 4ns wait between switching" severity error;
-  assert d_is_error report "D need at least 4ns wait between switching" severity error;
-  assert d_preinstall_is_error report "D need to be stable at least 3ns before C rise" severity error;
+  assert not c_is_error report "C need at least 4ns wait between switching" severity error;
+  assert not r_is_error report "R = 1 need at least 4ns wait between switching" severity error;
+  assert not d_is_error report "D need at least 4ns wait between switching" severity error;
+  assert not d_preinstall_is_error report "D need to be stable at least 3ns before C rise" severity error;
 
   process(c)
   variable c_delta : time;
@@ -48,7 +48,7 @@ begin
     c_is_error <= (c_delta < c_duration) and (c_delta > 0 ns);
 
     if (c'event and c = '1') then
-      d_preinstall_is_error <= not d'stable(3 ns);
+      d_preinstall_is_error <= not d'stable(3 ns) and (c_delta > 0 ns);
     end if;
   end process;
 
@@ -86,7 +86,7 @@ begin
   end process;
 
   schema_is_error <= d_is_error or c_is_error or r_is_error or d_preinstall_is_error;
-  assert schema_is_error report "Some input was wrong. See errors before or check input values" severity error;
+  assert not schema_is_error report "Some input was wrong. See errors before or check input values" severity error;
 
   -- outs
   trigger_body_select: block (not schema_is_error)
