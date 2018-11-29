@@ -13,6 +13,10 @@ architecture main_arch of lab4_schema is
   signal ideal_q : std_logic := 'Z';
 
   signal schema_is_error : boolean := false;
+  signal d_is_error : boolean := false;
+  signal c_is_error : boolean := false;
+  signal r_is_error : boolean := false;
+
   signal d_prev_t : time := 0 ns;
   signal d_filtered : std_logic := '0';
   signal d_filtered_after_c : std_logic := '0';
@@ -31,47 +35,38 @@ architecture main_arch of lab4_schema is
   constant r_duration : time := 4 ns;
 begin
 
+  assert c_is_error report "C need at least 4ns wait between switching" severity error;
+  assert r_is_error report "R = 1 need at least 4ns wait between switching" severity error;
+  assert d_is_error report "D need at least 4ns wait between switching" severity error;
+
   process(c)
   variable c_delta : time;
   begin
     clk_prev_t <= now;
-
     c_delta := now - clk_prev_t;
-    if ((c_delta < clk_duration) and (c_delta > 0 ns)) then
-      c_filtered <= 'X';
-      assert false report "C need at least 4ns wait between switching" severity error;
-    else
-      c_filtered <= c;
-    end if;
+    c_is_error <= (c_delta < clk_duration) and (c_delta > 0 ns);
   end process;
 
   process(r)
   variable r_delta : time;
   begin
     r_prev_t <= now;
-
     r_delta := now - r_prev_t;
-    if ((r_delta < r_duration) and (r_delta > 0 ns) and (r = '0')) then
-      r_filtered <= 'X';
-      assert false report "R = 1 need at least 4ns wait between switching" severity error;
-    else
-      r_filtered <= r;
-    end if;
+    r_is_error <= ((r_delta < r_duration) and (r_delta > 0 ns) and (r = '0'));
   end process;
 
   process(d)
   variable d_delta : time;
   begin
     d_prev_t <= now;
-
     d_delta := now - d_prev_t;
-    if ((d_delta < d_duration) and (d_delta > 0 ns)) then
-      d_filtered <= 'X';
-      assert false report "D need at least 4ns wait between switching" severity error;
-    else
-      d_filtered <= d;
-    end if;
+    d_is_error <= ((d_delta < d_duration) and (d_delta > 0 ns));
   end process;
+
+  -- obsolete
+  c_filtered <= c;
+  d_filtered <= d;
+  r_filtered <= r;
 
   process(c_filtered)
   variable new_d : std_logic;
@@ -142,8 +137,7 @@ begin
     end if;
   end process;
 
-  -- TODO: add other errors
-  schema_is_error <= d_is_error;
+  schema_is_error <= d_is_error or c_is_error or r_is_error;
   assert schema_is_error report "Some input was wrong. See errors before or check input values" severity error;
 
   -- outs
