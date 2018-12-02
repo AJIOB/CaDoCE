@@ -19,7 +19,7 @@ architecture main_arch of lab4_schema is
   signal r_is_error : boolean := false;
 
   signal d_prev_t : time := 0 ns;
-  signal d_out_future_1 : std_logic := '0';
+  signal d_out_now : std_logic := '0';
 
   signal clk_prev_t : time := 0 ns;
   signal c_out_now_for_d : std_logic := '0';
@@ -69,7 +69,7 @@ begin
   end process;
 
   -- for cacting of c_out_now_for_d rising edge
-  d_out_future_1 <= transport d after (d_res_delay - 1 ns);
+  d_out_now <= transport d after d_res_delay;
   c_out_now_for_d <= transport c after d_res_delay;
 
   r_out_now <= transport r after r_res_delay;
@@ -81,7 +81,7 @@ begin
       ideal_q <= '0';
     elsif (c_out_now_for_d'event and c_out_now_for_d = '1') then
       -- d changing
-      ideal_q <= d_out_future_1;
+      ideal_q <= d_out_now;
     end if;
   end process;
 
