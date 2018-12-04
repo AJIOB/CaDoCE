@@ -29,8 +29,10 @@ architecture main_arch of lab4_schema is
 
   --Минимальное время переключения D
   constant d_duration : time := 4 ns;
-  --Минимальное время переключения C
-  constant c_duration : time := 4 ns;
+  --Минимальное время удержания C=1
+  constant c_1_duration : time := 7 ns;
+  --Минимальное время удержания C=0
+  constant c_0_duration : time := 5 ns;
   --Минимальное время удержания '1' на R
   constant r_duration : time := 4 ns;
 
@@ -59,10 +61,13 @@ begin
   begin
     clk_prev_t <= now;
     c_delta := now - clk_prev_t;
-    c_is_error <= (c_delta < c_duration) and (c_delta > 0 ns);
 
     if (c'event and c = '1') then
       d_preinstall_is_error <= not d'stable(3 ns) and (c_delta > 0 ns);
+
+      c_is_error <= (c_delta < c_0_duration) and (c_delta > 0 ns);
+    elsif (c'event and c = '0') then
+      c_is_error <= (c_delta < c_1_duration) and (c_delta > 0 ns);
     end if;
   end process;
 
