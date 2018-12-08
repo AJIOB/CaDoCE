@@ -39,8 +39,10 @@ architecture main_arch of lab4_schema is
   --Минимальное время удержания '0' на D до фронта С
   constant d_0_before_c_duration : time := d_0_duration - d_after_c_duration;
 
-  --Время реакции триггера на фронт C
-  constant d_res_delay : time := 9 ns;
+  --Время реакции триггера на фронт C при D = 1
+  constant d_1_res_delay : time := 9 ns;
+  --Время реакции триггера на фронт C при D = 0
+  constant d_0_res_delay : time := 10 ns;
   --Время реакции триггера на фронт R
   constant r_res_delay : time := 8 ns;
 
@@ -97,12 +99,25 @@ begin
     end if;
   end process;
 
-  --Эмуляция задержки реакции триггера:
+  --Процесс выполняет:
+  --  эмуляция задержки реакции триггера
+  --Используемые сигналы и переменные:
+  --  delay_time - текущее требуемое время транспортировки результата сигнала
   --  c_out_now_for_d - смещенный на время реакции на фронт C сигнал С (по нему будет защелкиваться новый D)
   --  d_out_now - смещенный на время реакции на фронт C сигнал D (сигнал для защелкивания)
   --  r_out_now - смещенный на время реакции на фронт R сигнал R (приоритетный сигнал сброса)
-  d_out_now <= transport d after d_res_delay;
-  c_out_now_for_d <= transport c after d_res_delay;
+  process(d, c)
+  variable delay_time : time := d_1_res_delay;
+  begin
+    if (d'event and d = '1') then
+      delay_time := d_1_res_delay;
+    elsif (d'event and d = '0') then
+      delay_time := d_0_res_delay;
+    end if;
+
+    d_out_now <= transport d after delay_time;
+    c_out_now_for_d <= transport c after delay_time;
+  end process;
   r_out_now <= transport r after r_res_delay;
 
   --Процесс эмуляции работы идеального триггера без задержек
