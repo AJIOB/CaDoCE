@@ -15,26 +15,29 @@ architecture main_arch of lab4_schema is
   signal schema_is_error : boolean := false;
   signal d_is_error : boolean := false;
   signal d_preinstall_is_error : boolean := false;
-  signal c_is_error : boolean := false;
   signal r_is_error : boolean := false;
 
   signal d_prev_t : time := 0 ns;
   signal d_out_now : std_logic := '0';
 
-  signal clk_prev_t : time := 0 ns;
   signal c_out_now_for_d : std_logic := '0';
 
   signal r_prev_t : time := 0 ns;
   signal r_out_now : std_logic := '0';
 
-  --Минимальное время переключения D
-  constant d_duration : time := 4 ns;
-  --Минимальное время удержания C=1
-  constant c_1_duration : time := 7 ns;
-  --Минимальное время удержания C=0
-  constant c_0_duration : time := 5 ns;
+  --Минимальное время удержания '1' на D
+  constant d_1_duration : time := 4 ns;
+  --Минимальное время удержания '0' на D
+  constant d_0_duration : time := 3 ns;
+  --Минимальное время удержания D после фронта C
+  constant d_after_c_duration : time := 1 ns;
   --Минимальное время удержания '1' на R
   constant r_duration : time := 4 ns;
+
+  --Минимальное время удержания '1' на D до фронта С
+  constant d_1_before_c_duration : time := d_1_duration - d_after_c_duration;
+  --Минимальное время удержания '0' на D до фронта С
+  constant d_0_before_c_duration : time := d_0_duration - d_after_c_duration;
 
   --Время реакции триггера на фронт C
   constant d_res_delay : time := 9 ns;
@@ -43,31 +46,22 @@ architecture main_arch of lab4_schema is
 
 begin
   --Вывод уведомления про происхождении какой-либо ошибки
-  assert not c_is_error report "C need at least 4ns wait between switching" severity error;
   assert not r_is_error report "R = 1 need at least 4ns wait between switching" severity error;
   assert not d_is_error report "D need at least 4ns wait between switching" severity error;
   assert not d_preinstall_is_error report "D need to be stable at least 3ns before C rise" severity error;
 
   --Процесс проверяет:
-  --  время неизменности сигнала C
   --  корректность времени предустановки D
   --Используемые сигналы и переменные:
-  --  c_delta - хранит время неизменности сигнала C
-  --  clk_prev_t - хранит время предыдущего изменения сигнала C
-  --  c_is_error - содержит true при ошибке минимальной длительности C, иначе false
   --  d_preinstall_is_error - содержит true при ошибке минимального времени предустановки D перед фронтом C, иначе false
   process(c)
-  variable c_delta : time;
   begin
-    clk_prev_t <= now;
-    c_delta := now - clk_prev_t;
-
     if (c'event and c = '1') then
-      d_preinstall_is_error <= not d'stable(3 ns) and (c_delta > 0 ns);
-
-      c_is_error <= (c_delta < c_0_duration) and (c_delta > 0 ns);
-    elsif (c'event and c = '0') then
-      c_is_error <= (c_delta < c_1_duration) and (c_delta > 0 ns);
+      if (d = '1') then
+        d_preinstall_is_error <= not d'stable(d_1_before_c_duration) and (now > 0 ns);
+      elsif (d = '0') then
+        d_preinstall_is_error <= not d'stable(d_0_before_c_duration) and (now > 0 ns);
+      end if;
     end if;
   end process;
 
@@ -96,7 +90,11 @@ begin
   begin
     d_prev_t <= now;
     d_delta := now - d_prev_t;
-    d_is_error <= ((d_delta < d_duration) and (d_delta > 0 ns));
+    if (d = '1') then
+      d_is_error <= ((d_delta < d_0_duration) and (d_delta > 0 ns));
+    elsif (d = '0') then
+      d_is_error <= ((d_delta < d_1_duration) and (d_delta > 0 ns));
+    end if;
   end process;
 
   --Эмуляция задержки реакции триггера:
@@ -124,7 +122,7 @@ begin
   --Проверка генерации какой-либо ошибки и вывод соответствующего уведомления
   --Используемые сигналы и переменные:
   --  schema_is_error - сигнал проверки наличия какой-либо ошибки в схеме (true при наличии ошибки)
-  schema_is_error <= d_is_error or c_is_error or r_is_error or d_preinstall_is_error;
+  schema_is_error <= d_is_error or r_is_error or d_preinstall_is_error;
   assert not schema_is_error report "Some input was wrong. See errors before or check input values" severity error;
 
   --Выводит на выход схемы результат работы идеального триггера (когда ошибок нет)
